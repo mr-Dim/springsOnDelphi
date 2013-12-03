@@ -1,0 +1,114 @@
+procedure TForm1.Button1Click(Sender: TObject);
+var i, Dsr, d, k, c, G, n, n1, k2, t, h0, h1, h2, h3, p1, p2, p3, L, t3, Lvit, a: Extended;
+  temp: integer;
+begin
+  Edit22.Font.Color:=clBlack;
+  if not CheckBox1.Checked then Edit4.Text:=FloatToStr(StrToFloat(Edit3.Text)+2.5);
+  temp:=0;
+
+  G:=StrToFloat(ComboBox1.Text);                    // Модуль сдвига
+  d:=StrToFloat(Edit1.Text);                       // Диаметр проволоки
+  Dsr:=StrToFloat(Edit2.Text);                     // Средний диаметр пружины
+  n:=StrToFloat(Edit3.Text);                       // Число рабочих витков
+  n1:=StrToFloat(Edit4.Text);
+
+  if CheckBox2.Checked then begin temp:=temp+1; h0:=StrToFloat(Edit12.Text) end else h0:=-1;  // Свободная длина
+  if CheckBox3.Checked then h1:=StrToFloat(Edit8.Text) else h1:=-1;  // длина Н1
+  if CheckBox4.Checked then p1:=StrToFloat(Edit10.Text) else p1:=-1;  // Усилие Р1
+  if CheckBox5.Checked then h2:=StrToFloat(Edit11.Text) else h2:=-1;  /// длина Н2
+  if CheckBox6.Checked then p2:=StrToFloat(Edit13.Text) else p2:=-1;  /// Усилие Р2
+
+  i:=Dsr/d;                                 // Индекс пружины
+  Edit5.Text:=FloatToStrF(i,ffFixed,6,3);
+
+  k:=(4*i-1)/(4*i-4)+0.615/i;               // Коэффициент кривизны витка пружины
+  Edit9.Text:=FloatToStrF(k,ffFixed,6,3);
+
+  k2:=1+1/(2*i)-1/(2*i*i);                  // Коэффициент 2
+  Edit7.Text:=FloatToStrF(k2,ffFixed,6,3);
+
+  c:= G*Power(d,4)/(8*Power(Dsr,3)*n*k2);   // Жесткость пружины
+  Edit6.Text:=FloatToStrF(c,ffFixed,6,3);
+
+
+
+  Lvit:=n1*d;                        // Длина витков
+  Edit24.Text:=FloatToStrF(Lvit,ffFixed,6,3);
+
+  if not ((h1=-1)or(p1=-1)) then begin h0:=p1/c+h1; temp:=temp+1; end;             // Длина Н0
+  if not ((h2=-1)or(p2=-1)) then begin h0:=p2/c+h2; temp:=temp+1; end;
+  if temp=0 then begin
+    Edit23.Text:='Не расч.';
+    Label18.Caption:='Недостаточно данных для расчета. Ах! Вы нехороший человек :)';
+    Edit26.Text:='Не расч.';
+  end else begin
+    Label18.Caption:='Эта программа расчитает любую пружину!!! Но только для хорошего человека :)';
+    if temp>1 then Label18.Caption:='h0 перерасчитано по значениям h1, p1 или h2,p2. Избыточно данных для расчета, но я посчитаю)';
+    Edit23.Text:=FloatToStrF(h0,ffFixed,6,3);
+    Edit26.Text:=FloatToStrF(h0/Dsr,ffFixed,6,3);
+  end;
+
+  if (h0 = -1) then begin
+    Edit14.Text:='Не расч.';
+    Edit21.Text:='Не расч.';
+    Edit22.Text:='Не расч.';
+    Edit16.Text:='Не расч.';
+    Edit17.Text:='Не расч.';
+    Edit18.Text:='Не расч.';
+    Edit19.Text:='Не расч.';
+    Edit25.Text:='Не расч.';
+    Edit15.Text:='Не расч.';
+  end else begin
+    t:=(h0-2*d)/n;                                  // Шаг пружины
+    Edit14.Text:=FloatToStrF(t,ffFixed,6,3);
+
+    
+    a:=ArcTanh(t/(pi*Dsr));
+    Edit25.Text:=FloatToStrF(180*a/pi,ffFixed,6,3);
+
+    L:=Pi*Dsr*n1/cos(a);                        // Развернутая длина
+  Edit15.Text:=FloatToStrF(L,ffFixed,6,3);
+
+    L:=Pi*Dsr*n1/cos(a);                        // Развернутая длина
+    Edit15.Text:=FloatToStrF(L,ffFixed,6,3);
+
+    if ((h1=-1)and(p1=-1)) then begin
+      Edit16.Text:='Не расч.';
+      Edit17.Text:='Не расч.';
+      Label18.Caption:='Недостаточно данных для расчета h1 и p1. Ах! Вы нехороший человек :)';
+    end else begin
+      if (p1=-1) then p1:=(h0-h1)*c;                                // Усилие Р1
+      if (h1=-1) then h1:=h0-p1/c;                                // Длина h1
+      Edit17.Text:=FloatToStrF(p1,ffFixed,6,3);
+      Edit16.Text:=FloatToStrF(h1,ffFixed,6,3);
+    end;
+
+    if ((h2=-1)and(p2=-1)) then begin
+      Edit18.Text:='Не расч.';
+      Edit19.Text:='Не расч.';
+      Edit20.Text:='Не расч.';
+      Edit21.Text:='Не расч.';
+      Edit22.Text:='Не расч.';
+      Label18.Caption:='Недостаточно данных для расчета h2 и p2. Ах! Вы нехороший человек :)';
+    end else begin
+      if (p2=-1) then p2:=(h0-h2)*c;                              // Усилие Р2
+      if (h2=-1) then h2:=h0-p2/c;                                // Длина h2
+
+      p3:=p2*1.1;                                                // Усилие Р3
+      Edit21.Text:=FloatToStrF(p3,ffFixed,6,3);
+
+      h3:=h0-p3/c;                                                // Длина Н3
+      Edit20.Text:=FloatToStrF(h3,ffFixed,6,3);
+      t3:=2.55*Dsr*k/Power(d,3)*p3;                                // Касательное напряжение
+      if t3>90 then Edit22.Font.Color:=clRed;
+      Edit22.Text:=FloatToStrF(t3,ffFixed,6,3);
+
+      if h3<Lvit then Label18.Caption:='Пружина так не сожмется!!! h3 < длины витков при соприкосновении';
+      Edit19.Text:=FloatToStrF(p2,ffFixed,6,3);
+      Edit18.Text:=FloatToStrF(h2,ffFixed,6,3);
+    end;
+  end;
+
+
+end;
+
